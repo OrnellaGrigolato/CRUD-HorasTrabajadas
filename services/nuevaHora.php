@@ -9,9 +9,9 @@ $comentario = trim($_POST['comentario']);
 $fechaDeInicio = trim($_POST['fechaDeInicio']);
 $horaDeInicio = trim($_POST['horaDeInicio']);
 // Reemplazar con el id del usuario traído del login
-$idUsuario = 1;
+$idUsuario = 2;
 
-$sql = "INSERT INTO  CRM_HORAS_TRABAJADAS (cliente,tipo,horaDeInicio,cantidad,comentario, ID_Usuario, fechaDeInicio) VALUES ('$cliente','$tipo','$horaDeInicio','$cantidad','$comentario','$idUsuario', '$fechaDeInicio');";
+$sql = "INSERT INTO CRM_HORAS_TRABAJADAS (cliente,tipo,horaDeInicio,cantidad,comentario, ID_Usuario, fechaDeInicio) VALUES ('$cliente','$tipo','$horaDeInicio','$cantidad','$comentario','$idUsuario', '$fechaDeInicio');";
 
 $ressql = sqlsrv_query($conn, $sql);
 
