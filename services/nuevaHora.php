@@ -2,16 +2,15 @@
 
 include '../conexion_mssql.php';
 
-$cantidad = trim($_POST['cantidad']);
-$tipo = trim($_POST['tipo']);
-$cliente = trim($_POST['cliente']);
+$horas = trim($_POST['cantidad']);
+$ID_TipoHora = trim($_POST['tipo']); //FAC o ABO
+$ID_Cliente = ($_POST['cliente']);
 $comentario = trim($_POST['comentario']);
-$fechaDeInicio = trim($_POST['fechaDeInicio']);
-$horaDeInicio = trim($_POST['horaDeInicio']);
+$fechaInicio = trim($_POST['fechaDeInicio']);
+$fechaCarga = trim($_POST['fechaCarga']);
 // Reemplazar con el id del usuario traído del login
-$idUsuario = 2;
-
-$sql = "INSERT INTO CRM_HORAS_TRABAJADAS (cliente,tipo,horaDeInicio,cantidad,comentario, ID_Usuario, fechaDeInicio) VALUES ('$cliente','$tipo','$horaDeInicio','$cantidad','$comentario','$idUsuario', '$fechaDeInicio');";
+$ID_Vendedor = 2;
+$sql = "INSERT INTO CRM_Horas (ID_Cliente,horas,ID_TipoHora, comentario,ID_Vendedor, fechaInicio,fechaCarga) VALUES ('$ID_Cliente','$horas','$ID_TipoHora','$comentario','$ID_Vendedor','$fechaInicio','$fechaCarga');";
 
 $ressql = sqlsrv_query($conn, $sql);
 

@@ -35,68 +35,68 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
-    </script>
+        </script>
 
     <style>
-    body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    .top-container {
-        background-color: #f1f1f1;
-        padding: 30px;
-        text-align: center;
-    }
+        .top-container {
+            background-color: #f1f1f1;
+            padding: 30px;
+            text-align: center;
+        }
 
-    .header {
-        padding: 10px 16px;
-        background: #555;
-        color: #f1f1f1;
-    }
+        .header {
+            padding: 10px 16px;
+            background: #555;
+            color: #f1f1f1;
+        }
 
-    .content {
-        padding: 16px;
-    }
+        .content {
+            padding: 16px;
+        }
 
-    .sticky {
-        position: fixed;
-        top: 0;
-        width: 100%;
-    }
+        .sticky {
+            position: fixed;
+            top: 0;
+            width: 100%;
+        }
 
-    .sticky+.content {
-        padding-top: 102px;
-    }
+        .sticky+.content {
+            padding-top: 102px;
+        }
 
-    #texto {
-        display: inline-block;
-        vertical-align: top;
-    }
+        #texto {
+            display: inline-block;
+            vertical-align: top;
+        }
 
-    .card {
-        margin-top: 2rem;
-    }
+        .card {
+            margin-top: 2rem;
+        }
 
-    #fechayhora {
-        border: 1px solid #aaa;
-        padding: 3px 10px;
-        border-radius: 4px;
-    }
+        #fechayhora {
+            border: 1px solid #aaa;
+            padding: 3px 10px;
+            border-radius: 4px;
+        }
 
-    .card-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        .card-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
 
-    }
+        }
 
-    /* Styles for select filter component (have to use !important to override them) */
-    .custom-selection1 .select2-selection__rendered .select2-selection__placeholder {
-        color: black !important;
-        font-family: monospace !important;
-    }
+        /* Styles for select filter component (have to use !important to override them) */
+        .custom-selection1 .select2-selection__rendered .select2-selection__placeholder {
+            color: black !important;
+            font-family: monospace !important;
+        }
     </style>
 
     <title>Whatsapp.Ar Horas Trabajadas</title>
@@ -134,7 +134,7 @@
                     <select class="selectorFiltroCliente">
                         <option id=0 value='' selected="true">Filtrar por Cliente</option>
                         <?php foreach ($list as $row): ?>
-                        <option id=<?= $row["id_cliente"] ?>><?= $row["RazonSocial"] ?></option>
+                            <option id=<?= $row["id_cliente"] ?>><?= $row["RazonSocial"] ?></option>
                         <?php endforeach ?>
                     </select>
 
@@ -150,81 +150,84 @@
     </div>
 
     <script>
-    function actualizarTablaUsuario(filtroFecha, filtroCliente) {
-        $.ajax({
-            async: true,
-            type: "POST",
-            data: {
-                filtroFecha,
-                filtroCliente
-            },
-            url: "tablaHoras.php",
-            beforeSend: function() {
-                $("#tablaHoras").html(
-                    '<div  style="width: 100%;display:flex; justify-content: center;"><div class="spinner-border text-primary" role="status" style="margin: 4px auto;"><span class="sr-only"></span></div></div>'
-                );
-            },
-            success: function(datos) {
-                $("#tablaHoras").html(datos);
-            }
-        })
-    };
-
-    $(document).ready(function() {
-        actualizarTablaUsuario("", "");
-    });
-
-    window.onscroll = function() {
-        myFunction()
-    };
-
-    var header = document.getElementById("myHeader");
-    var sticky = header.offsetTop;
-
-    function myFunction() {
-        if (window.pageYOffset > sticky) {
-            header.classList.add("sticky");
-        } else {
-            header.classList.remove("sticky");
-        }
-    }
-
-    function filtrarPorDia(value) {
-        document.getElementById("limpiarFiltroDia").style.visibility = 'visible'
-        actualizarTablaUsuario(value, $(".selectorFiltroCliente").val())
-    }
-
-    function limpiarFiltro(tipoDeFiltro) {
-        switch (tipoDeFiltro) {
-            case "Fecha":
-                document.getElementById("fechayhora").value = ""
-                document.getElementById("limpiarFiltroDia").style.visibility = 'hidden'
-                actualizarTablaUsuario("", $(".selectorFiltroCliente").val())
-                break
-            case "Cliente":
-                $(".selectorFiltroCliente").val('').trigger('change')
-                document.getElementById("limpiarFiltroCliente").style.display = 'none'
-                actualizarTablaUsuario(document.getElementById("fechayhora").value, "")
-                break
-        }
-    }
-
-    $(document).ready(function() {
-        $(".selectorFiltroCliente").select2({
-            language: {
-                noResults: function() {
-                    return "No se encontraron resultados";
+        function actualizarTablaUsuario(filtroFecha, filtroCliente) {
+            $.ajax({
+                async: true,
+                type: "POST",
+                data: {
+                    filtroFecha,
+                    filtroCliente
+                },
+                url: "tablaHoras.php",
+                beforeSend: function () {
+                    $("#tablaHoras").html(
+                        '<div  style="width: 100%;display:flex; justify-content: center;"><div class="spinner-border text-primary" role="status" style="margin: 4px auto;"><span class="sr-only"></span></div></div>'
+                    );
+                },
+                success: function (datos) {
+                    $("#tablaHoras").html(datos);
                 }
-            },
-            placeholder: 'Seleccionar un cliente',
-            dropdownCssClass: "custom-dropdown1",
-            selectionCssClass: "custom-selection1"
-        })
-        $(".selectorFiltroCliente").on("change", function(e) {
-            document.getElementById("limpiarFiltroCliente").style.display = 'inline'
-            actualizarTablaUsuario("", e.target.value)
-        });;
-    });
+            })
+        };
+
+        $(document).ready(function () {
+            actualizarTablaUsuario("", "");
+        });
+
+        window.onscroll = function () {
+            myFunction()
+        };
+
+        var header = document.getElementById("myHeader");
+        var sticky = header.offsetTop;
+
+        function myFunction() {
+            if (window.pageYOffset > sticky) {
+                header.classList.add("sticky");
+            } else {
+                header.classList.remove("sticky");
+            }
+        }
+
+        function filtrarPorDia(value) {
+            document.getElementById("limpiarFiltroDia").style.visibility = 'visible'
+            actualizarTablaUsuario(value, $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
+                '.selectorFiltroCliente option:selected').attr("id") : "")
+        }
+
+        function limpiarFiltro(tipoDeFiltro) {
+            switch (tipoDeFiltro) {
+                case "Fecha":
+                    document.getElementById("fechayhora").value = ""
+                    document.getElementById("limpiarFiltroDia").style.visibility = 'hidden'
+                    actualizarTablaUsuario("", $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
+                        '.selectorFiltroCliente option:selected').attr("id") : "")
+                    break
+                case "Cliente":
+                    $(".selectorFiltroCliente").val('').trigger('change')
+                    document.getElementById("limpiarFiltroCliente").style.display = 'none'
+                    actualizarTablaUsuario(document.getElementById("fechayhora").value, "")
+                    break
+            }
+        }
+
+        $(document).ready(function () {
+            $(".selectorFiltroCliente").select2({
+                language: {
+                    noResults: function () {
+                        return "No se encontraron resultados";
+                    }
+                },
+                placeholder: 'Seleccionar un cliente',
+                dropdownCssClass: "custom-dropdown1",
+                selectionCssClass: "custom-selection1"
+            })
+            $(".selectorFiltroCliente").on("change", function (e) {
+                document.getElementById("limpiarFiltroCliente").style.display = 'inline'
+                actualizarTablaUsuario(document.getElementById("fechayhora").value, $(this).find(
+                    "option:selected").attr("id"))
+            });
+        });
     </script>
 </body>
 
