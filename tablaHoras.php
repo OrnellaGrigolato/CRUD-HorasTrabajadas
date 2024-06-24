@@ -93,9 +93,10 @@ include 'conexion_mssql.php';
         </thead>
         <tbody>
             <?php
-            $filtroFecha = trim($_POST['filtroFecha']);
+            $filtroFechaDesde = trim($_POST['filtroDesde']);
+            $filtroFechaHasta = trim($_POST['filtroHasta']);
             $filtroCliente = trim($_POST['filtroCliente']);
-
+            $totalHoras = 0;
             // Reemplazar con el id del usuario traído del login
             $idUsuario = 2;
 
@@ -119,14 +120,23 @@ include 'conexion_mssql.php';
 
             $params = [$idUsuario];
 
-            if ($filtroFecha != "") {
-                $fecha = DateTime::createFromFormat('Y-m-d', $filtroFecha);
-                $fechaFormateada = $fecha->format('Y-m-d');
-                $query .= "  AND CAST(fechaInicio AS DATE) = ?";
-                $params[] = $fechaFormateada;
+            if ($filtroFechaDesde != "" && $filtroFechaHasta != "") {
+                $fechaDesde = DateTime::createFromFormat('Y-m-d', $filtroFechaDesde)->format('Y-m-d');
+                $fechaHasta = DateTime::createFromFormat('Y-m-d', $filtroFechaHasta)->format('Y-m-d');
+                $query .= " AND CAST(h.FechaInicio AS DATE) BETWEEN ? AND ?";
+                $params[] = $fechaDesde;
+                $params[] = $fechaHasta;
+            } elseif ($filtroFechaDesde != "") {
+                $fechaDesde = DateTime::createFromFormat('Y-m-d', $filtroFechaDesde)->format('Y-m-d');
+                $query .= " AND CAST(h.FechaInicio AS DATE) >= ?";
+                $params[] = $fechaDesde;
+            } elseif ($filtroFechaHasta != "") {
+                $fechaHasta = DateTime::createFromFormat('Y-m-d', $filtroFechaHasta)->format('Y-m-d');
+                $query .= " AND CAST(h.FechaInicio AS DATE) <= ?";
+                $params[] = $fechaHasta;
             } else {
                 $fechaDeHoy = date("Y-m-d");
-                $query .= " AND CAST(fechaInicio AS DATE) = ?";
+                $query .= " AND CAST(h.FechaInicio AS DATE) = ?";
                 $params[] = $fechaDeHoy;
             }
 
@@ -146,9 +156,9 @@ include 'conexion_mssql.php';
             if ($ressqlHoras === false) {
                 die(print_r(sqlsrv_errors(), true));
             }
-
             if (!sqlsrv_has_rows($stmt)) {
-                if ($filtroFecha === "" && $filtroCliente === "") {
+
+                if ($filtroFechaDesde === "" && $filtroFechaHasta === "" && $filtroCliente === "") {
                     ?>
 
             <tr>
@@ -157,18 +167,28 @@ include 'conexion_mssql.php';
                 </td>
             </tr>
             <?php
-                } else if ($filtroCliente === "" && $filtroFecha !== "") {
-                    $fecha = DateTime::createFromFormat('Y-m-d', $filtroFecha);
-                    $fechaFormateada = $fecha->format('d-m-Y');
-                    ?>
+                } else if ($filtroCliente === "" && ($filtroFechaDesde != "" || $filtroFechaHasta != "")) {
+                    $hastaEsMenorQueDesde = DateTime::createFromFormat('Y-m-d', $filtroFechaHasta) < DateTime::createFromFormat('Y-m-d', $filtroFechaDesde);
+                    if ($hastaEsMenorQueDesde) {
+                        ?>
             <tr>
                 <td colspan="7" class="text-center">
-                    No se encontraron horas trabajadas para el día <?php echo $fechaFormateada; ?>.
+                    El valor del filtro 'hasta' no puede ser anterior al del filtro 'desde'.
                 </td>
             </tr>
 
             <?php
-                } else if ($filtroCliente !== "" && $filtroFecha === "") {
+                    } else {
+                        ?>
+            <tr>
+                <td colspan="7" class="text-center">
+                    No se encontraron horas trabajadas para el rango de fechas seleccionado.
+                </td>
+            </tr>
+
+            <?php
+                    }
+                } else if ($filtroCliente !== "" && $filtroFechaDesde === "" && $filtroFechaHasta === "") {
                     ?>
             <tr>
                 <td colspan="7" class="text-center">
@@ -177,12 +197,10 @@ include 'conexion_mssql.php';
             </tr>
             <?php
                 } else {
-                    $fecha = DateTime::createFromFormat('Y-m-d', $filtroFecha);
-                    $fechaFormateada = $fecha->format('d-m-Y');
                     ?>
             <tr>
                 <td colspan="7" class="text-center">
-                    No se encontraron horas trabajadas para el día <?php echo $fechaFormateada; ?> y el cliente
+                    No se encontraron horas trabajadas para el rango de fechas seleccionado y el cliente
                     seleccionado.
                 </td>
             </tr>
@@ -190,6 +208,7 @@ include 'conexion_mssql.php';
                 }
             }
             while ($listaHoras = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $totalHoras += $listaHoras['Horas'];
                 ?>
             <tr>
                 <td><?php echo $listaHoras['NombreCliente']; ?></td>
@@ -234,7 +253,7 @@ include 'conexion_mssql.php';
         </tfoot>
         </tbody>
     </table>
-
+    <input type="hidden" id="totalHoras" value="<?php echo $totalHoras; ?>">
     <!-- Modal -->
     <div class="modal fade" role="dialog" id="infoHora" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -341,7 +360,6 @@ include 'conexion_mssql.php';
     <script>
     function modalParaAgregarHora() {
         resetValues()
-        const valorDelFiltro = document.getElementById("fechayhora").value
         const valorFiltroCliente = $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
             '.selectorFiltroCliente option:selected').attr("id") : ""
         $(document).on("click", "#btnConfirmarEdicion", function() {
@@ -377,8 +395,9 @@ include 'conexion_mssql.php';
                                 var dataResult = JSON.parse(r);
                                 if (dataResult.status == 200) {
                                     resetValues();
-                                    actualizarTablaUsuario(valorDelFiltro != undefined ?
-                                        valorDelFiltro : "", valorFiltroCliente);
+                                    actualizarTablaUsuario(document.getElementById("desde")
+                                        .value, document.getElementById("hasta").value,
+                                        valorFiltroCliente);
                                 } else {
                                     if (dataResult.status == 201) {
                                         alertify.set('notifier', 'position', 'top-center');
@@ -401,9 +420,20 @@ include 'conexion_mssql.php';
                 });
             }
         })
-        document.getElementById('modal-title').innerHTML = "Crear Nuevo Registro de Horas Trabajadas"
-        if (valorDelFiltro !== "") {
-            $(".modal-body #fechaYHora").val(valorDelFiltro + " " + "00:00")
+        document.getElementById('modal-title').innerHTML = "Crear Nuevo Registro de Horas Trabajadas";
+        console.log(document.getElementById("desde").value);
+        if (document.getElementById("desde").value != "" && document
+            .getElementById("hasta").value != "") {
+            $(".modal-body #fechaYHora").val(document
+                .getElementById("hasta").value + " " + "00:00")
+        } else if (document.getElementById("desde").value != "" && document
+            .getElementById("hasta").value === "") {
+            $(".modal-body #fechaYHora").val(document
+                .getElementById("desde").value + " " + "00:00")
+        } else if (document.getElementById("desde").value === "" && document
+            .getElementById("hasta").value != "") {
+            $(".modal-body #fechaYHora").val(document
+                .getElementById("hasta").value + " " + "00:00")
         } else {
             const arrayDeHoy = new Date().toLocaleString("en-US", {
                 timeZone: "America/Argentina/Buenos_Aires"
@@ -425,7 +455,6 @@ include 'conexion_mssql.php';
     }
 
     function modalParaEditarHora(a, b, c, d, e, f, g) {
-        const valorDelFiltro = document.getElementById("fechayhora").value
         const valorFiltroCliente = $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
             '.selectorFiltroCliente option:selected').attr("id") : ""
         resetValues()
@@ -475,8 +504,9 @@ include 'conexion_mssql.php';
                                 var dataResult = JSON.parse(r);
                                 if (dataResult.status == 200) {
                                     resetValues();
-                                    actualizarTablaUsuario(valorDelFiltro != undefined ?
-                                        valorDelFiltro : "", valorFiltroCliente);
+                                    actualizarTablaUsuario(document.getElementById("desde")
+                                        .value, document.getElementById("hasta").value,
+                                        valorFiltroCliente);
                                     $("#tipo").addClass("empty");
                                 } else {
                                     if (dataResult.status == 201) {
@@ -503,7 +533,6 @@ include 'conexion_mssql.php';
     }
 
     function borrarHora(horaId) {
-        const valorDelFiltro = document.getElementById("fechayhora").value
         const valorFiltroCliente = $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
             '.selectorFiltroCliente option:selected').attr("id") : ""
         alertify.confirm('Confirmar Acción', 'Está Seguro de Borrar este registro de Horas Trabajadas?',
@@ -518,8 +547,8 @@ include 'conexion_mssql.php';
                     success: function(r) {
                         var dataResult = JSON.parse(r);
                         if (dataResult.status == 200) {
-                            actualizarTablaUsuario(valorDelFiltro != undefined ?
-                                valorDelFiltro : "", valorFiltroCliente);
+                            actualizarTablaUsuario(document.getElementById("desde").value, document
+                                .getElementById("hasta").value, valorFiltroCliente);
                         } else {
                             if (dataResult.status == 201) {
                                 alertify.set('notifier', 'position', 'top-center');

@@ -92,6 +92,13 @@
 
         }
 
+        .footer {
+            width: 100%;
+            text-align: right;
+            margin-top: -1rem;
+            padding-right: 1rem;
+        }
+
         /* Styles for select filter component (have to use !important to override them) */
         .custom-selection1 .select2-selection__rendered .select2-selection__placeholder {
             color: black !important;
@@ -112,9 +119,14 @@
                 <h6 class="mb-0">Horas Trabajadas</h6>
                 <form
                     style="font-family : monospace; background-color: transparent; font-size : 10pt; color: black;margin: 0; display:flex; align-items: center; gap: 8px">
-                    <label for="birthdaytime">Filtrar por Día:</label>
-                    <input type="date" id="fechayhora" name="fechayhora" onchange="filtrarPorDia(this.value);">
-                    <a onclick="limpiarFiltro('Fecha')" class="fa fa-times" id="limpiarFiltroDia"
+                    <b style="font-size : 17px;padding: 0px 10px 0px 0px;">Filtrar por Fecha</b>
+                    <label for="birthdaytime">Desde</label>
+                    <input type="date" id="desde" name="fechayhora" onchange="filtrarDesde(this.value);">
+                    <a onclick="limpiarFiltro('Desde')" class="fa fa-times" id="limpiarFiltroDesde"
+                        style="color: black;text-decoration: none; margin-right: 7px;visibility: hidden;cursor:pointer"></a>
+                    <label for="birthdaytime">Hasta</label>
+                    <input type="date" id="hasta" name="fechayhora" onchange="filtrarHasta(this.value);">
+                    <a onclick="limpiarFiltro('Hasta')" class="fa fa-times" id="limpiarFiltroHasta"
                         style="color: black;text-decoration: none; margin-right: 17px;visibility: hidden;cursor:pointer"></a>
 
                     <?php
@@ -146,16 +158,20 @@
             <div class="card-body">
                 <div id="tablaHoras"></div>
             </div>
+
+            <p class="footer">Cantidad de Horas: <b id="cantidadHoras">0</b></p>
+
         </div>
     </div>
 
     <script>
-        function actualizarTablaUsuario(filtroFecha, filtroCliente) {
+        function actualizarTablaUsuario(filtroDesde, filtroHasta, filtroCliente) {
             $.ajax({
                 async: true,
                 type: "POST",
                 data: {
-                    filtroFecha,
+                    filtroDesde,
+                    filtroHasta,
                     filtroCliente
                 },
                 url: "tablaHoras.php",
@@ -166,12 +182,14 @@
                 },
                 success: function (datos) {
                     $("#tablaHoras").html(datos);
+                    const totalHoras = $('#totalHoras').val();
+                    $('#cantidadHoras').text(totalHoras);
                 }
             })
         };
 
         $(document).ready(function () {
-            actualizarTablaUsuario("", "");
+            actualizarTablaUsuario("", "", "");
         });
 
         window.onscroll = function () {
@@ -189,24 +207,42 @@
             }
         }
 
-        function filtrarPorDia(value) {
-            document.getElementById("limpiarFiltroDia").style.visibility = 'visible'
-            actualizarTablaUsuario(value, $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
-                '.selectorFiltroCliente option:selected').attr("id") : "")
+        function filtrarDesde(value) {
+            document.getElementById("limpiarFiltroDesde").style.visibility = 'visible';
+            actualizarTablaUsuario(value, document.getElementById("hasta").value, $(
+                '.selectorFiltroCliente option:selected').attr("id") != 0 ?
+                $(
+                    '.selectorFiltroCliente option:selected').attr("id") : "");
+        }
+
+        function filtrarHasta(value) {
+            document.getElementById("limpiarFiltroHasta").style.visibility = 'visible';
+            actualizarTablaUsuario(document.getElementById("desde").value, value, $(
+                '.selectorFiltroCliente option:selected').attr("id") != 0 ?
+                $(
+                    '.selectorFiltroCliente option:selected').attr("id") : "");
         }
 
         function limpiarFiltro(tipoDeFiltro) {
             switch (tipoDeFiltro) {
-                case "Fecha":
-                    document.getElementById("fechayhora").value = ""
-                    document.getElementById("limpiarFiltroDia").style.visibility = 'hidden'
-                    actualizarTablaUsuario("", $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
-                        '.selectorFiltroCliente option:selected').attr("id") : "")
+                case "Desde":
+                    document.getElementById("desde").value = ""
+                    document.getElementById("limpiarFiltroDesde").style.visibility = 'hidden'
+                    actualizarTablaUsuario("", document.getElementById("hasta").value, $(
+                        '.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
+                            '.selectorFiltroCliente option:selected').attr("id") : "")
+                    break
+                case "Hasta":
+                    document.getElementById("hasta").value = ""
+                    document.getElementById("limpiarFiltroHasta").style.visibility = 'hidden'
+                    actualizarTablaUsuario(document.getElementById("desde").value, "", document.getElementById("hasta")
+                        .value, $('.selectorFiltroCliente option:selected').attr("id") != 0 ? $(
+                            '.selectorFiltroCliente option:selected').attr("id") : "")
                     break
                 case "Cliente":
                     $(".selectorFiltroCliente").val('').trigger('change')
                     document.getElementById("limpiarFiltroCliente").style.display = 'none'
-                    actualizarTablaUsuario(document.getElementById("fechayhora").value, "")
+                    actualizarTablaUsuario(document.getElementById("desde").value, document.getElementById("hasta").value, "")
                     break
             }
         }
@@ -224,8 +260,9 @@
             })
             $(".selectorFiltroCliente").on("change", function (e) {
                 document.getElementById("limpiarFiltroCliente").style.display = 'inline'
-                actualizarTablaUsuario(document.getElementById("fechayhora").value, $(this).find(
-                    "option:selected").attr("id"))
+                actualizarTablaUsuario(document.getElementById("desde").value, document.getElementById(
+                    "hasta").value, $(this).find(
+                        "option:selected").attr("id"))
             });
         });
     </script>
