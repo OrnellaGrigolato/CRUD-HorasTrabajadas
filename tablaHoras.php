@@ -169,7 +169,17 @@ include 'conexion_mssql.php';
             <?php
                 } else if ($filtroCliente === "" && ($filtroFechaDesde != "" || $filtroFechaHasta != "")) {
                     $hastaEsMenorQueDesde = DateTime::createFromFormat('Y-m-d', $filtroFechaHasta) < DateTime::createFromFormat('Y-m-d', $filtroFechaDesde);
-                    if ($hastaEsMenorQueDesde) {
+                    $mayoresAHoy = DateTime::createFromFormat('Y-m-d', $filtroFechaDesde) > DateTime::createFromFormat('Y-m-d', date("Y-m-d"));
+                    if ($mayoresAHoy) {
+                        ?>
+            <tr>
+                <td colspan="7" class="text-center">
+                    El valor del filtro 'desde' no puede ser mayor a la fecha de hoy.
+                </td>
+            </tr>
+
+            <?php
+                    } else if ($hastaEsMenorQueDesde) {
                         ?>
             <tr>
                 <td colspan="7" class="text-center">
